@@ -89,22 +89,26 @@ class Updater(Plugin):
         except:
             log.error('Failed checking last time to update: %s', traceback.format_exc())
 
-        if do_check and self.isEnabled() and self.check() and self.conf('automatic') and not self.updater.update_failed:
+        if (
+            do_check
+            and self.isEnabled()
+            and self.check()
+            and self.conf('automatic')
+            and not self.updater.update_failed
+            and self.updater.doUpdate()
+        ):
+            # Notify before restarting
+            try:
+                if self.conf('notification'):
+                    info = self.updater.info()
+                    version_date = datetime.fromtimestamp(info['update_version']['date'])
+                    fireEvent('updater.updated', 'CouchPotato: Updated to a new version with hash "%s", this version is from %s' % (info['update_version']['hash'], version_date), data = info)
+            except:
+                log.error('Failed notifying for update: %s', traceback.format_exc())
 
-            if self.updater.doUpdate():
+            fireEventAsync('app.restart')
 
-                # Notify before restarting
-                try:
-                    if self.conf('notification'):
-                        info = self.updater.info()
-                        version_date = datetime.fromtimestamp(info['update_version']['date'])
-                        fireEvent('updater.updated', 'CouchPotato: Updated to a new version with hash "%s", this version is from %s' % (info['update_version']['hash'], version_date), data = info)
-                except:
-                    log.error('Failed notifying for update: %s', traceback.format_exc())
-
-                fireEventAsync('app.restart')
-
-                return True
+            return True
 
         return False
 
@@ -189,7 +193,7 @@ class BaseUpdater(Plugin):
             'last_check': self.last_check,
             'update_version': self.update_version,
             'version': current_version,
-            'repo_name': '%s/%s' % (self.repo_user, self.repo_name),
+            'repo_name': f'{self.repo_user}/{self.repo_name}',
             'branch': current_version.get('branch', self.branch),
         }
 
@@ -213,7 +217,9 @@ class GitUpdater(BaseUpdater):
         if self.old_repo in remote.url:
             log.info('Changing repo to new github organization: %s -> %s', (self.old_repo, self.new_repo))
             new_url = remote.url.replace(self.old_repo, self.new_repo)
-            self.repo._executeGitCommandAssertSuccess("remote set-url %s %s" % (remote_name, new_url))
+            self.repo._executeGitCommandAssertSuccess(
+                f"remote set-url {remote_name} {new_url}"
+            )
 
     def doUpdate(self):
 
@@ -344,9 +350,7 @@ class SourceUpdater(BaseUpdater):
         removePyc(app_dir)
         existing_files = []
         for root, subfiles, filenames in os.walk(app_dir):
-            for filename in filenames:
-                existing_files.append(os.path.join(root, filename))
-
+            existing_files.extend(os.path.join(root, filename) for filename in filenames)
         for root, subfiles, filenames in os.walk(path):
             for filename in filenames:
                 fromfile = os.path.join(root, filename)
@@ -394,10 +398,8 @@ class SourceUpdater(BaseUpdater):
 
         if not self.version:
             try:
-                f = open(self.version_file, 'r')
-                output = json.loads(f.read())
-                f.close()
-
+                with open(self.version_file, 'r') as f:
+                    output = json.loads(f.read())
                 log.debug('Source version output: %s', output)
                 self.version = output
                 self.version['type'] = 'source'
@@ -426,7 +428,8 @@ class SourceUpdater(BaseUpdater):
 
     def latestCommit(self):
         try:
-            url = 'https://api.github.com/repos/%s/%s/commits?per_page=1&sha=%s' % (self.repo_user, self.repo_name, self.branch)
+            url = f'https://api.github.com/repos/{self.repo_user}/{self.repo_name}/commits?per_page=1&sha={self.branch}'
+
             data = self.getCache('github.commit', url = url)
             commit = json.loads(data)[0]
 
@@ -489,7 +492,7 @@ class DesktopUpdater(BaseUpdater):
 
     def getVersion(self):
         return {
-            'repr': 'desktop: %s' % self.desktop._esky.active_version,
+            'repr': f'desktop: {self.desktop._esky.active_version}',
             'hash': self.desktop._esky.active_version,
             'date': None,
             'type': 'desktop',

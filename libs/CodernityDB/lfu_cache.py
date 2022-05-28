@@ -120,27 +120,22 @@ def cache2lvl(maxsize=100):
             use_count.clear()
 
         def delete(key, inner_key=None):
-            if inner_key is not None:
-                try:
+            try:
+                if inner_key is not None:
                     del cache[key][inner_key]
                     del use_count[key][inner_key]
                     if not cache[key]:
                         del cache[key]
                         del use_count[key]
                     wrapper.cache_size -= 1
-                except KeyError:
-                    return False
                 else:
-                    return True
-            else:
-                try:
                     wrapper.cache_size -= len(cache[key])
                     del cache[key]
                     del use_count[key]
-                except KeyError:
-                    return False
-                else:
-                    return True
+            except KeyError:
+                return False
+            else:
+                return True
 
         wrapper.clear = clear
         wrapper.cache = cache
