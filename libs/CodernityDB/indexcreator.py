@@ -176,8 +176,7 @@ class Parser(object):
             return not m
 
         def is_string(s):
-            m = re.search('\s*(?P<a>[\'\"]+).*?(?P=a)\s*', s)
-            return m
+            return re.search('\s*(?P<a>[\'\"]+).*?(?P=a)\s*', s)
         data = re.split('make_key_value\:', data)
 
         if len(data) < 2:
@@ -273,7 +272,13 @@ class Parser(object):
         self.custom_header = set()
 
         self.tokens = []
-        self.tokens_head = ['# %s\n' % self.name, 'class %s(' % self.name, '):\n', '    def __init__(self, *args, **kwargs):        ']
+        self.tokens_head = [
+            '# %s\n' % self.name,
+            f'class {self.name}(',
+            '):\n',
+            '    def __init__(self, *args, **kwargs):        ',
+        ]
+
 
         for i in xrange(3):
             tokenize.tokenize(self.readline(i), self.add(self.pre_tokens, i))
@@ -315,13 +320,12 @@ class Parser(object):
             for k in i:
                 self.handle_make_key(*k)
 
-        if self.index_type == "":
+        if not self.index_type:
             raise IndexCreatorValueException("Missing index type definition\n")
-        if self.index_name == "":
+        if not self.index_name:
             raise IndexCreatorValueException("Missing index name\n")
 
-        self.tokens_head[0] = "# " + self.index_name + "\n" + \
-            self.tokens_head[0]
+        self.tokens_head[0] = (f"# {self.index_name}" + "\n" + self.tokens_head[0])
 
         for i in self.funcs_with_body:
             if self.funcs_with_body[i][1]:
@@ -339,7 +343,10 @@ class Parser(object):
         if self.index_type in self.allowed_props:
             for i in self.props_set:
                 if i not in self.allowed_props[self.index_type]:
-                    raise IndexCreatorValueException("Properity %s is not allowed for index type: %s" % (i, self.index_type))
+                    raise IndexCreatorValueException(
+                        f"Properity {i} is not allowed for index type: {self.index_type}"
+                    )
+
 
         # print "".join(self.tokens_head)
         # print "----------"
@@ -381,12 +388,15 @@ class Parser(object):
                 nex = d[n + 1][1] if d[n + 1][0] == token.OP else d[n + 1][0]
 
             if prev not in self.allowed_adjacent[cur]:
-                raise IndexCreatorValueException("Wrong left value of the %s" % cur, self.cnt_line_nr(line, st))
+                raise IndexCreatorValueException(
+                    f"Wrong left value of the {cur}", self.cnt_line_nr(line, st)
+                )
 
-            # there is an assumption that whole data always ends with 0 marker, the idea prolly needs a rewritting to allow more whitespaces
-            # between tokens, so it will be handled anyway
+
             elif nex not in self.allowed_adjacent[cur][prev]:
-                raise IndexCreatorValueException("Wrong right value of the %s" % cur, self.cnt_line_nr(line, st))
+                raise IndexCreatorValueException(
+                    f"Wrong right value of the {cur}", self.cnt_line_nr(line, st)
+                )
 
         for n, (t, i, _, _, line) in enumerate(d):
             if t == token.NAME or t == token.STRING:
@@ -433,10 +443,7 @@ class Parser(object):
                     s_b_cnt -= 1
 
         def check_if_empty(a):
-            for i in a:
-                if i not in [token.NEWLINE, token.INDENT, token.ENDMARKER]:
-                    return False
-            return True
+            return all(i in [token.NEWLINE, token.INDENT, token.ENDMARKER] for i in a)
         if st == 0:
             check_ret_args_nr(d, st)
             return
@@ -472,7 +479,7 @@ class Parser(object):
                 elif t == token.NAME:
                     self.known_dicts_in_mkv.append((i, (n, r)))
                     return 0
-                elif t == token.STRING or t == token.NUMBER:
+                elif t in [token.STRING, token.NUMBER]:
                     raise IndexCreatorValueException("Second return value of make_key_value function has to be a dictionary!", self.cnt_line_nr(line, 1))
 
         for ind in enumerate(d):
@@ -512,7 +519,12 @@ class Parser(object):
         elif stage == 1:
             return nr + self.cnt_lines[0] + (self.cnt_lines[2] - 1 if self.funcs_rev else 0)
         elif stage == 2:
-            return nr + self.cnt_lines[0] + (self.cnt_lines[1] - 1 if not self.funcs_rev else 0)
+            return (
+                nr
+                + self.cnt_lines[0]
+                + (0 if self.funcs_rev else self.cnt_lines[1] - 1)
+            )
+
 
         return -1
 

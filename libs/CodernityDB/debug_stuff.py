@@ -187,7 +187,7 @@ def database_from_steps(db_obj, path):
 #                print 'FROM STEPS doing', line
             meth = getattr(db_obj, line[0], None)
             if not meth:
-                raise Exception("Method = `%s` not found" % line[0])
+                raise Exception(f"Method = `{line[0]}` not found")
 
             meth(*line[1], **line[2])
 

@@ -40,10 +40,9 @@ class Loader(object):
         settings.setFile(self.options.config_file)
 
         # Create data dir if needed
-        if self.options.data_dir:
-            self.data_dir = self.options.data_dir
-        else:
-            self.data_dir = os.path.expanduser(Env.setting('data_dir'))
+        self.data_dir = self.options.data_dir or os.path.expanduser(
+            Env.setting('data_dir')
+        )
 
         if self.data_dir == '':
             self.data_dir = getDataDir()
@@ -120,8 +119,6 @@ class Loader(object):
                 self.daemon.daemonize()
             except SystemExit:
                 raise
-            except:
-                self.log.critical(traceback.format_exc())
 
     def runAsDaemon(self):
         return self.options.daemon and self.options.pid_file
@@ -149,14 +146,3 @@ if __name__ == '__main__':
             except:
                 print(traceback.format_exc())
             raise
-    except:
-        try:
-            # if this fails we will have two tracebacks
-            # one for failing to log, and one for the exception that got us here.
-            if l:
-                l.log.critical(traceback.format_exc())
-            else:
-                print(traceback.format_exc())
-        except:
-            print(traceback.format_exc())
-        raise

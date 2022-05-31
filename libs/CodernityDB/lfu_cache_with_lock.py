@@ -129,25 +129,21 @@ def create_cache2lvl(lock_obj):
                 use_count.clear()
 
             def delete(key, *args):
-                if args:
-                    try:
+                try:
+                    if args:
                         del cache[key][args[0]]
                         del use_count[key][args[0]]
                         if not cache[key]:
                             del cache[key]
                             del use_count[key]
                         wrapper.cache_size -= 1
-                        return True
-                    except KeyError:
-                        return False
-                else:
-                    try:
+                    else:
                         wrapper.cache_size -= len(cache[key])
                         del cache[key]
                         del use_count[key]
-                        return True
-                    except KeyError:
-                        return False
+                    return True
+                except KeyError:
+                    return False
 
             wrapper.clear = clear
             wrapper.cache = cache

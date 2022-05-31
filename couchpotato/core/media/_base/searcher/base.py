@@ -13,7 +13,7 @@ class SearcherBase(Plugin):
         super(SearcherBase, self).__init__()
 
         addEvent('searcher.progress', self.getProgress)
-        addEvent('%s.searcher.progress' % self.getType(), self.getProgress)
+        addEvent(f'{self.getType()}.searcher.progress', self.getProgress)
 
         self.initCron()
 
@@ -25,8 +25,14 @@ class SearcherBase(Plugin):
         _type = self.getType()
 
         def setCrons():
-            fireEvent('schedule.cron', '%s.searcher.all' % _type, self.searchAll,
-                      day = self.conf('cron_day'), hour = self.conf('cron_hour'), minute = self.conf('cron_minute'))
+            fireEvent(
+                'schedule.cron',
+                f'{_type}.searcher.all',
+                self.searchAll,
+                day=self.conf('cron_day'),
+                hour=self.conf('cron_hour'),
+                minute=self.conf('cron_minute'),
+            )
 
         addEvent('app.load', setCrons)
         addEvent('setting.save.%s_searcher.cron_day.after' % _type, setCrons)
@@ -36,8 +42,4 @@ class SearcherBase(Plugin):
     def getProgress(self, **kwargs):
         """ Return progress of current searcher"""
 
-        progress = {
-            self.getType(): self.in_progress
-        }
-
-        return progress
+        return {self.getType(): self.in_progress}

@@ -82,7 +82,7 @@ class MovieBase(MovieTypeBase):
         # Allow force re-add overwrite from param
         if 'force_readd' in params:
             fra = params.get('force_readd')
-            force_readd = fra.lower() not in ['0', '-1'] if not isinstance(fra, bool) else fra
+            force_readd = fra if isinstance(fra, bool) else fra.lower() not in ['0', '-1']
 
         # Set default title
         def_title = self.getDefaultTitle(info)
@@ -100,13 +100,15 @@ class MovieBase(MovieTypeBase):
                 '_t': 'media',
                 'type': 'movie',
                 'title': def_title,
-                'identifiers': {
-                    'imdb': params.get('identifier')
-                },
-                'status': status if status else 'active',
-                'profile_id': params.get('profile_id') or default_profile.get('_id'),
-                'category_id': cat_id if cat_id is not None and len(cat_id) > 0 and cat_id != '-1' else None,
+                'identifiers': {'imdb': params.get('identifier')},
+                'status': status or 'active',
+                'profile_id': params.get('profile_id')
+                or default_profile.get('_id'),
+                'category_id': cat_id
+                if cat_id is not None and len(cat_id) > 0 and cat_id != '-1'
+                else None,
             }
+
 
             # Update movie info
             try: del info['in_wanted']
@@ -118,15 +120,13 @@ class MovieBase(MovieTypeBase):
             new = False
             previous_profile = None
             try:
-                m = db.get('media', 'imdb-%s' % params.get('identifier'), with_doc = True)['doc']
+                m = db.get('media', f"imdb-{params.get('identifier')}", with_doc = True)['doc']
 
                 try:
                     db.get('id', m.get('profile_id'))
                     previous_profile = m.get('profile_id')
                 except RecordNotFound:
                     pass
-                except:
-                    log.error('Failed getting previous profile: %s', traceback.format_exc())
             except:
                 new = True
                 m = db.insert(media)
@@ -153,7 +153,10 @@ class MovieBase(MovieTypeBase):
                         else:
                             fireEvent('release.delete', release['_id'], single = True)
 
-                m['profile_id'] = (params.get('profile_id') or default_profile.get('_id')) if not previous_profile else previous_profile
+                m['profile_id'] = previous_profile or (
+                    params.get('profile_id') or default_profile.get('_id')
+                )
+
                 m['category_id'] = cat_id if cat_id is not None and len(cat_id) > 0 else (m.get('category_id') or None)
                 m['last_edit'] = int(time.time())
                 m['tags'] = []
@@ -189,12 +192,10 @@ class MovieBase(MovieTypeBase):
 
                 if params.get('title'):
                     message = 'Successfully added "%s" to your wanted list.' % params.get('title', '')
+                elif title := getTitle(m):
+                    message = 'Successfully added "%s" to your wanted list.' % title
                 else:
-                    title = getTitle(m)
-                    if title:
-                        message = 'Successfully added "%s" to your wanted list.' % title
-                    else:
-                        message = 'Successfully added to your wanted list.'
+                    message = 'Successfully added to your wanted list.'
                 fireEvent('notify.frontend', type = 'movie.added', data = movie_dict, message = message)
 
             return movie_dict
@@ -204,10 +205,7 @@ class MovieBase(MovieTypeBase):
     def addView(self, **kwargs):
         add_dict = self.add(params = kwargs)
 
-        return {
-            'success': True if add_dict else False,
-            'movie': add_dict,
-        }
+        return {'success': bool(add_dict), 'movie': add_dict}
 
     def edit(self, id = '', **kwargs):
 
@@ -270,7 +268,7 @@ class MovieBase(MovieTypeBase):
         if self.shuttingDown():
             return
 
-        lock_key = 'media.get.%s' % media_id if media_id else identifier
+        lock_key = f'media.get.{media_id}' if media_id else identifier
         self.acquireLock(lock_key)
 
         media = {}
@@ -280,7 +278,7 @@ class MovieBase(MovieTypeBase):
             if media_id:
                 media = db.get('id', media_id)
             else:
-                media = db.get('media', 'imdb-%s' % identifier, with_doc = True)['doc']
+                media = db.get('media', f'imdb-{identifier}', with_doc = True)['doc']
 
             info = fireEvent('movie.info', merge = True, extended = extended, identifier = getIdentifier(media))
 

@@ -33,7 +33,7 @@ def create_cache1lvl(lock_obj):
                 except KeyError:
                     with lock:
                         if len(cache) == maxsize:
-                            for i in xrange(maxsize // 10 or 1):
+                            for _ in xrange(maxsize // 10 or 1):
                                 del cache[choice(cache.keys())]
                         cache[key] = user_function(key, *args, **kwargs)
                         result = cache[key]
@@ -71,7 +71,7 @@ def create_cache2lvl(lock_obj):
                     with lock:
                         if wrapper.cache_size == maxsize:
                             to_delete = maxsize // 10 or 1
-                            for i in xrange(to_delete):
+                            for _ in xrange(to_delete):
                                 key1 = choice(cache.keys())
                                 key2 = choice(cache[key1].keys())
                                 del cache[key1][key2]
@@ -91,22 +91,18 @@ def create_cache2lvl(lock_obj):
                 wrapper.cache_size = 0
 
             def delete(key, *args):
-                if args:
-                    try:
+                try:
+                    if args:
                         del cache[key][args[0]]
                         if not cache[key]:
                             del cache[key]
                         wrapper.cache_size -= 1
-                        return True
-                    except KeyError:
-                        return False
-                else:
-                    try:
+                    else:
                         wrapper.cache_size -= len(cache[key])
                         del cache[key]
-                        return True
-                    except KeyError:
-                        return False
+                    return True
+                except KeyError:
+                    return False
 
             wrapper.clear = clear
             wrapper.cache = cache

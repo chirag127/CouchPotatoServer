@@ -34,8 +34,7 @@ class rTorrent(DownloaderBase):
 
     def migrate(self):
 
-        url = self.conf('url')
-        if url:
+        if url := self.conf('url'):
             host_split = splitString(url.split('://')[-1], split_on = '/')
 
             self.conf('ssl', value = url.startswith('https'))
@@ -119,7 +118,7 @@ class rTorrent(DownloaderBase):
             return True
 
         if self.error_msg:
-            return False, 'Connection failed: ' + self.error_msg
+            return False, f'Connection failed: {self.error_msg}'
 
         return False
 
@@ -246,10 +245,15 @@ class rTorrent(DownloaderBase):
                     torrent_files = []
 
                     for file in torrent.get_files():
-                        if not os.path.normpath(file.path).startswith(torrent_directory):
-                            file_path = os.path.join(torrent_directory, file.path.lstrip('/'))
-                        else:
-                            file_path = file.path
+                        file_path = (
+                            file.path
+                            if os.path.normpath(file.path).startswith(
+                                torrent_directory
+                            )
+                            else os.path.join(
+                                torrent_directory, file.path.lstrip('/')
+                            )
+                        )
 
                         torrent_files.append(sp(file_path))
 
