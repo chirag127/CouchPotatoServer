@@ -48,7 +48,7 @@ def getOptions(args):
 
     options = parser.parse_args(args)
 
-    data_dir = os.path.expanduser(options.data_dir if options.data_dir else getDataDir())
+    data_dir = os.path.expanduser(options.data_dir or getDataDir())
 
     if not options.config_file:
         options.config_file = os.path.join(data_dir, 'settings.conf')
@@ -70,8 +70,7 @@ def _log(status_code, request):
     else:
         log_method = logging.debug
     request_time = 1000.0 * request.request_time()
-    summary = request.method + " " + request.uri + " (" + \
-        request.remote_ip + ")"
+    summary = ((f"{request.method} {request.uri} (" + request.remote_ip) + ")")
     log_method("%d %s %.2fms", status_code, summary, request_time)
 
 

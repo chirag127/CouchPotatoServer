@@ -32,16 +32,15 @@ class Hadouken(DownloaderBase):
             return False
 
         # This is where v4 and v5 begin to differ
-        if(self.conf('version') == 'v4'):
+        if (self.conf('version') == 'v4'):
             if not self.conf('api_key'):
                 log.error('Config properties are not filled in correctly, API key is missing.')
                 return False
 
-            url = 'http://' + str(host[0]) + ':' + str(host[1]) + '/jsonrpc'
+            url = f'http://{str(host[0])}:{str(host[1])}/jsonrpc'
             client = JsonRpcClient(url, 'Token ' + self.conf('api_key'))
             self.hadouken_api = HadoukenAPIv4(client)
 
-            return True
         else:
             auth_type = self.conf('auth_type')
             header = None
@@ -51,13 +50,11 @@ class Hadouken(DownloaderBase):
             elif auth_type == 'user_pass':
                 header = 'Basic ' + b64encode(self.conf('auth_user') + ':' + self.conf('auth_pass'))
 
-            url = 'http://' + str(host[0]) + ':' + str(host[1]) + '/api'
+            url = f'http://{str(host[0])}:{str(host[1])}/api'
             client = JsonRpcClient(url, header)
             self.hadouken_api = HadoukenAPIv5(client)
 
-            return True
-
-        return False
+        return True
 
     def download(self, data = None, media = None, filedata = None):
         """ Send a torrent/nzb file to the downloader
@@ -155,10 +152,11 @@ class Hadouken(DownloaderBase):
                 continue
 
             torrent_filelist = self.hadouken_api.get_files_by_hash(torrent.info_hash)
-            torrent_files = []
+            torrent_files = [
+                sp(os.path.join(torrent.save_path, file_item))
+                for file_item in torrent_filelist
+            ]
 
-            for file_item in torrent_filelist:
-                torrent_files.append(sp(os.path.join(torrent.save_path, file_item)))
 
             release_downloads.append({
                 'id': torrent.info_hash.upper(),
@@ -182,10 +180,11 @@ class Hadouken(DownloaderBase):
         pause -- Boolean indicating whether to pause or resume.
         """
 
-        if not self.connect():
-            return False
-
-        return self.hadouken_api.pause(release_download['id'], pause)
+        return (
+            self.hadouken_api.pause(release_download['id'], pause)
+            if self.connect()
+            else False
+        )
 
     def removeFailed(self, release_download):
         """ Removes a failed torrent and also remove the data associated with it.
@@ -411,22 +410,15 @@ class HadoukenAPIv5(HadoukenAPI):
 
     def get_by_hash_list(self, infoHashList):
         torrents = self.rpc.invoke('webui.list', None)
-        result = []
-
-        for torrent in torrents['torrents']:
-            if torrent[0] in infoHashList:
-                result.append(TorrentItemv5(torrent))
-
-        return result
+        return [
+            TorrentItemv5(torrent)
+            for torrent in torrents['torrents']
+            if torrent[0] in infoHashList
+        ]
 
     def get_files_by_hash(self, infoHash):
         files = self.rpc.invoke('webui.getFiles', [infoHash])
-        result = []
-
-        for file in files['files'][1]:
-            result.append(file[0])
-
-        return result
+        return [file[0] for file in files['files'][1]]
 
     def get_version(self):
         result = self.rpc.invoke('core.getSystemInfo', None)
@@ -466,10 +458,10 @@ class TorrentItemv4(TorrentItem):
         return self.obj['State']
 
     def get_status(self):
-        if self.obj['IsSeeding'] and self.obj['IsFinished'] and self.obj['Paused']:
-            return 'completed'
-
         if self.obj['IsSeeding']:
+            if self.obj['IsFinished'] and self.obj['Paused']:
+                return 'completed'
+
             return 'seeding'
 
         return 'busy'
@@ -493,21 +485,11 @@ class HadoukenAPIv4(object):
 
     def get_by_hash_list(self, infoHashList):
         torrents = self.rpc.invoke('torrents.getByInfoHashList', [infoHashList])
-        result = []
-
-        for torrent in torrents:
-            result.append(TorrentItemv4(torrent))
-
-        return result
+        return [TorrentItemv4(torrent) for torrent in torrents]
 
     def get_files_by_hash(self, infoHash):
         files = self.rpc.invoke('torrents.getFiles', [infoHash])
-        result = []
-
-        for file in files:
-            result.append(file['Path'])
-
-        return result
+        return [file['Path'] for file in files]
 
     def get_version(self):
         result = self.rpc.invoke('core.getVersion', None)

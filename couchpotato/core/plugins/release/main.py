@@ -78,7 +78,6 @@ class Release(Plugin):
                 continue
 
             try:
-
                 try:
                     doc = db.get('id', release.get('_id'))
                 except RecordDeleted:
@@ -101,9 +100,6 @@ class Release(Plugin):
                 db.delete(doc)
                 log.debug('Deleted orphaned release: %s', doc)
                 reindex += 1
-            except:
-                log.debug('Failed cleaning up orphaned releases: %s', traceback.format_exc())
-
         if reindex > 0:
             db.reindex()
 
@@ -134,11 +130,12 @@ class Release(Plugin):
         try:
             db = get_db()
 
-            release_identifier = '%s.%s.%s' % (group['identifier'], group['meta_data'].get('audio', 'unknown'), group['meta_data']['quality']['identifier'])
+            release_identifier = f"{group['identifier']}.{group['meta_data'].get('audio', 'unknown')}.{group['meta_data']['quality']['identifier']}"
+
 
             # Add movie if it doesn't exist
             try:
-                media = db.get('media', 'imdb-%s' % group['identifier'], with_doc = True)['doc']
+                media = db.get('media', f"imdb-{group['identifier']}", with_doc = True)['doc']
             except:
                 media = fireEvent('movie.add', params = {
                     'identifier': group['identifier'],
@@ -184,7 +181,12 @@ class Release(Plugin):
                 })
 
             # Empty out empty file groups
-            release['files'] = dict((k, [toUnicode(x) for x in v]) for k, v in group['files'].items() if v)
+            release['files'] = {
+                k: [toUnicode(x) for x in v]
+                for k, v in group['files'].items()
+                if v
+            }
+
             db.update(release)
 
             fireEvent('media.restatus', media['_id'], allowed_restatus = ['done'], single = True)
@@ -211,9 +213,6 @@ class Release(Plugin):
         except RecordDeleted:
             log.debug('Already deleted: %s', release_id)
             return True
-        except:
-            log.error('Failed: %s', traceback.format_exc())
-
         return False
 
     def clean(self, release_id):
@@ -341,10 +340,11 @@ class Release(Plugin):
                 rls['download_info'] = download_result
                 db.update(rls)
 
-            log_movie = '%s (%s) in %s' % (getTitle(media), media['info'].get('year'), rls['quality'])
+            log_movie = f"{getTitle(media)} ({media['info'].get('year')}) in {rls['quality']}"
+
             snatch_message = 'Snatched "%s": %s from %s' % (data.get('name'), log_movie, (data.get('provider', '') + data.get('provider_extra', '')))
             log.info(snatch_message)
-            fireEvent('%s.snatched' % data['type'], message = snatch_message, data = media)
+            fireEvent(f"{data['type']}.snatched", message = snatch_message, data = media)
 
             # Mark release as snatched
             if renamer_enabled:
@@ -536,8 +536,7 @@ class Release(Plugin):
             for ms in db.get_many('release_status', s):
                 if with_doc:
                     try:
-                        doc = db.get('id', ms['_id'])
-                        yield doc
+                        yield db.get('id', ms['_id'])
                     except RecordNotFound:
                         log.debug('Record not found, skipping: %s', ms['_id'])
                 else:

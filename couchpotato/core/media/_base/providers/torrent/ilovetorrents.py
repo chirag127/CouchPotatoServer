@@ -115,7 +115,7 @@ class Base(TorrentProvider):
         }
 
     def getMoreInfo(self, item):
-        cache_key = 'ilt.%s' % item['id']
+        cache_key = f"ilt.{item['id']}"
         description = self.getCache(cache_key)
 
         if not description:

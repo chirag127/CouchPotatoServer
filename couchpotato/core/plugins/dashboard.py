@@ -32,9 +32,10 @@ class Dashboard(Plugin):
         # See what the profile contain and cache it
         profile_pre = {}
         for profile in profiles:
-            contains = {}
-            for q_identifier in profile.get('qualities', []):
-                contains['theater' if q_identifier in pre_releases else 'dvd'] = True
+            contains = {
+                'theater' if q_identifier in pre_releases else 'dvd': True
+                for q_identifier in profile.get('qualities', [])
+            }
 
             profile_pre[profile.get('_id')] = contains
 
@@ -49,7 +50,7 @@ class Dashboard(Plugin):
 
         medias = []
 
-        if len(active_ids) > 0:
+        if active_ids:
 
             # Order by title or randomize
             if not random:
@@ -107,10 +108,6 @@ class Dashboard(Plugin):
                         if len(medias) >= limit:
                             break
 
-        return {
-            'success': True,
-            'empty': len(medias) == 0,
-            'movies': medias,
-        }
+        return {'success': True, 'empty': not medias, 'movies': medias}
 
     getLateView = getSoonView

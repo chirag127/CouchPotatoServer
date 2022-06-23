@@ -122,7 +122,10 @@ class Base(TorrentMagnetProvider):
         return 'title="Pirate Search"' in data
 
     def getMoreInfo(self, item):
-        full_description = self.getCache('tpb.%s' % item['id'], item['detail_url'], cache_timeout = 25920000)
+        full_description = self.getCache(
+            f"tpb.{item['id']}", item['detail_url'], cache_timeout=25920000
+        )
+
         html = BeautifulSoup(full_description)
         nfo_pre = html.find('div', attrs = {'class': 'nfo'})
         description = ''
@@ -138,7 +141,7 @@ class Base(TorrentMagnetProvider):
 
         for url in self.proxy_list:
             try:
-                data = self.urlopen(url + '/search/test+search')
+                data = self.urlopen(f'{url}/search/test+search')
 
                 if 'value="test+search"' in data:
                     log.info('Success %s', url)

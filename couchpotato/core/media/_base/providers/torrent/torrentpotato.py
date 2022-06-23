@@ -34,9 +34,9 @@ class Base(TorrentProvider):
 
     def _searchOnHost(self, host, media, quality, results):
 
-        torrents = self.getJsonData(self.buildUrl(media, host), cache_timeout = 1800)
-
-        if torrents:
+        if torrents := self.getJsonData(
+            self.buildUrl(media, host), cache_timeout=1800
+        ):
             try:
                 if torrents.get('error'):
                     log.error('%s: %s', (torrents.get('error'), host['host']))
@@ -105,22 +105,18 @@ class Base(TorrentProvider):
         hosts = self.getHosts()
 
         for host in hosts:
-            result = super(Base, self).belongsTo(url, host = host['host'], provider = provider)
-            if result:
+            if result := super(Base, self).belongsTo(
+                url, host=host['host'], provider=provider
+            ):
                 return result
 
     def isDisabled(self, host = None):
         return not self.isEnabled(host)
 
     def isEnabled(self, host = None):
-
     # Return true if at least one is enabled and no host is given
         if host is None:
-            for host in self.getHosts():
-                if self.isEnabled(host):
-                    return True
-            return False
-
+            return next((True for host in self.getHosts() if self.isEnabled(host)), False)
         return TorrentProvider.isEnabled(self) and host['host'] and host['pass_key'] and int(host['use'])
 
 

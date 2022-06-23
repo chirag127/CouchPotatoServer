@@ -44,7 +44,7 @@ class FileBrowserChrootedTest(TestCase):
         for path, parent in [('/asdf','/'), (CHROOT_DIR, '/'), ('/mnk/123/t', '/mnk/123/')]:
             r = self.b.view(path)
             path_strip = path
-            if (path.endswith(os.path.sep)):
+            if path_strip.endswith(os.path.sep):
                 path_strip = path_strip.rstrip(os.path.sep)
 
             self.assertEqual(r['home'], '/')

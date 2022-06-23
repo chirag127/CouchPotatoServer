@@ -96,9 +96,6 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
                 except IndexError:
                     log.error('Forcing library update for %s, if you see this often, please report: %s', (getIdentifier(media), traceback.format_exc()))
                     fireEvent('movie.update', media_id)
-                except:
-                    log.error('Search failed for %s: %s', (getIdentifier(media), traceback.format_exc()))
-
                 self.in_progress['to_go'] -= 1
 
                 # Break if CP wants to shut down
@@ -149,7 +146,7 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
 
         # Ignore eta once every 7 days
         if not always_search:
-            prop_name = 'last_ignored_eta.%s' % movie['_id']
+            prop_name = f"last_ignored_eta.{movie['_id']}"
             last_ignored_eta = float(Env.prop(prop_name, default = 0))
             if last_ignored_eta < time.time() - 604800:
                 ignore_eta = True
@@ -243,7 +240,7 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
         if total_result_count > 0:
             fireEvent('media.tag', movie['_id'], 'recent', update_edited = True, single = True)
 
-        if len(too_early_to_search) > 0:
+        if too_early_to_search:
             log.info2('Too early to search for %s, %s', (too_early_to_search, default_title))
 
             if outside_eta_results > 0:
@@ -274,12 +271,23 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
         if not fireEvent('searcher.correct_words', nzb['name'], media, single = True):
             return False
 
-        preferred_quality = quality if quality else fireEvent('quality.single', identifier = quality['identifier'], single = True)
+        preferred_quality = quality or fireEvent(
+            'quality.single', identifier=quality['identifier'], single=True
+        )
+
 
         # Contains lower quality string
         contains_other = fireEvent('searcher.contains_other_quality', nzb, movie_year = media['info']['year'], preferred_quality = preferred_quality, single = True)
         if contains_other and isinstance(contains_other, dict):
-            log.info2('Wrong: %s, looking for %s, found %s', (nzb['name'], quality['label'], [x for x in contains_other] if contains_other else 'no quality'))
+            log.info2(
+                'Wrong: %s, looking for %s, found %s',
+                (
+                    nzb['name'],
+                    quality['label'],
+                    list(contains_other) if contains_other else 'no quality',
+                ),
+            )
+
             return False
 
         # Contains lower quality string
@@ -297,9 +305,7 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
             log.info2('Wrong: "%s" is too large to be %s. %sMB instead of the maximum of %sMB.', (nzb['name'], preferred_quality['label'], nzb['size'], preferred_quality['size_max']))
             return False
 
-        # Provider specific functions
-        get_more = nzb.get('get_more_info')
-        if get_more:
+        if get_more := nzb.get('get_more_info'):
             get_more(nzb)
 
         extra_check = nzb.get('extra_check')
@@ -338,35 +344,33 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
 
         if (year is None or year < now_year - 1 or (year <= now_year - 1 and now_month > 4)) and (not dates or (dates.get('theater', 0) == 0 and dates.get('dvd', 0) == 0)):
             return True
+        # Don't allow movies with years to far in the future
+        add_year = 1 if now_month > 10 else 0 # Only allow +1 year if end of the year
+        if year is not None and year > (now_year + add_year):
+            return False
+
+        # For movies before 1972
+        if not dates or dates.get('theater', 0) < 0 or dates.get('dvd', 0) < 0:
+            return True
+
+        if is_pre_release:
+            # Prerelease 1 week before theaters
+            if dates.get('theater') - 604800 < now:
+                return True
         else:
-
-            # Don't allow movies with years to far in the future
-            add_year = 1 if now_month > 10 else 0 # Only allow +1 year if end of the year
-            if year is not None and year > (now_year + add_year):
-                return False
-
-            # For movies before 1972
-            if not dates or dates.get('theater', 0) < 0 or dates.get('dvd', 0) < 0:
+            # 12 weeks after theater release
+            if dates.get('theater') > 0 and dates.get('theater') + 7257600 < now:
                 return True
 
-            if is_pre_release:
-                # Prerelease 1 week before theaters
-                if dates.get('theater') - 604800 < now:
-                    return True
-            else:
-                # 12 weeks after theater release
-                if dates.get('theater') > 0 and dates.get('theater') + 7257600 < now:
+            if dates.get('dvd') > 0:
+
+                # 4 weeks before dvd release
+                if dates.get('dvd') - 2419200 < now:
                     return True
 
-                if dates.get('dvd') > 0:
-
-                    # 4 weeks before dvd release
-                    if dates.get('dvd') - 2419200 < now:
-                        return True
-
-                    # Dvd should be released
-                    if dates.get('dvd') < now:
-                        return True
+                # Dvd should be released
+                if dates.get('dvd') < now:
+                    return True
 
 
         return False
@@ -389,13 +393,12 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
                 if rel.get('status') in ['snatched', 'done']:
                     fireEvent('release.update_status', rel.get('_id'), status = 'ignored')
 
-            media = fireEvent('media.get', media_id, single = True)
-            if media:
+            if media := fireEvent('media.get', media_id, single=True):
                 log.info('Trying next release for: %s', getTitle(media))
                 self.single(media, manual = manual, force_download = force_download)
 
                 return True
-            
+
             return False
         except:
             log.error('Failed searching for next release: %s', traceback.format_exc())

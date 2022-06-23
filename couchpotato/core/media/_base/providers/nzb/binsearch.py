@@ -50,10 +50,15 @@ class Base(NZBProvider):
 
                     def extra_check(item):
                         parts = re.search('available:.(?P<parts>\d+)./.(?P<total>\d+)', info.text)
-                        total = float(tryInt(parts.group('total')))
-                        parts = float(tryInt(parts.group('parts')))
+                        total = float(tryInt(parts['total']))
+                        parts = float(tryInt(parts['parts']))
 
-                        if (total / parts) < 1 and ((total / parts) < 0.95 or ((total / parts) >= 0.95 and not ('par2' in info.text.lower() or 'pa3' in info.text.lower()))):
+                        if (total / parts) < 1 and (
+                            (total / parts) < 0.95
+                            or (total / parts) >= 0.95
+                            and 'par2' not in info.text.lower()
+                            and 'pa3' not in info.text.lower()
+                        ):
                             log.info2('Wrong: \'%s\', not complete: %s out of %s', (item['name'], parts, total))
                             return False
 

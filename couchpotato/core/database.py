@@ -62,7 +62,7 @@ class Database(object):
             # Make sure store and bucket don't exist
             exists = []
             for x in ['buck', 'stor']:
-                full_path = os.path.join(db.path, '%s_%s' % (index_name, x))
+                full_path = os.path.join(db.path, f'{index_name}_{x}')
                 if os.path.exists(full_path):
                     exists.append(full_path)
 
@@ -206,9 +206,6 @@ class Database(object):
                         db.destroy_index(index_name)
                     except IndexNotFoundException:
                         pass
-                    except:
-                        log.error('Failed removing old index %s', index_name)
-
                 # Add them again
                 for index_name in self.indexes:
                     klass = self.indexes[index_name]
@@ -220,16 +217,9 @@ class Database(object):
                         db.reindex_index(index_name)
                     except IndexConflict:
                         pass
-                    except:
-                        log.error('Failed adding index %s', index_name)
-                        raise
-
                 self.compact(try_repair = False)
             else:
                 log.error('Failed compact: %s', traceback.format_exc())
-
-        except:
-            log.error('Failed compact: %s', traceback.format_exc())
 
         return {
             'success': success
@@ -247,7 +237,7 @@ class Database(object):
                 list(db.all('profile', with_doc = True))
             except RecordNotFound:
 
-                failed_location = '%s_failed' % db.path
+                failed_location = f'{db.path}_failed'
                 old_db = os.path.join(Env.get('data_dir'), 'couchpotato.db.old')
 
                 if not os.path.isdir(failed_location) and os.path.isfile(old_db):
@@ -255,7 +245,7 @@ class Database(object):
                     db.close()
 
                     # Rename database folder
-                    os.rename(db.path, '%s_failed' % db.path)
+                    os.rename(db.path, f'{db.path}_failed')
 
                     # Rename .old database to try another migrate
                     os.rename(old_db, old_db[:-4])
