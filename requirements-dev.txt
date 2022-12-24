@@ -10,3 +10,4 @@ pep8>=1.4.6
 
 # you could disable it on travis
 rednose>=0.4.0
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
