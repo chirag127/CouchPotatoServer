@@ -15,7 +15,14 @@ def runHandler(name, handler, *args, **kwargs):
         return handler(*args, **kwargs)
     except:
         from couchpotato.environment import Env
-        log.error('Error in event "%s", that wasn\'t caught: %s%s', (name, traceback.format_exc(), Env.all() if not Env.get('dev') else ''))
+        log.error(
+            'Error in event "%s", that wasn\'t caught: %s%s',
+            (
+                name,
+                traceback.format_exc(),
+                '' if Env.get('dev') else Env.all(),
+            ),
+        )
 
 
 def addEvent(name, handler, priority = 100):
@@ -32,16 +39,15 @@ def addEvent(name, handler, priority = 100):
             parent = None
             if has_parent:
                 parent = handler.__self__
-                bc = hasattr(parent, 'beforeCall')
-                if bc: parent.beforeCall(handler)
-
+                if bc := hasattr(parent, 'beforeCall'):
+                    parent.beforeCall(handler)
             # Main event
             h = runHandler(name, handler, *args, **kwargs)
 
             # Close handler
             if parent and has_parent:
-                ac = hasattr(parent, 'afterCall')
-                if ac: parent.afterCall(handler)
+                if ac := hasattr(parent, 'afterCall'):
+                    parent.afterCall(handler)
         except:
             log.error('Failed creating handler %s %s: %s', (name, handler, traceback.format_exc()))
 
@@ -129,7 +135,7 @@ def fireEvent(name, *args, **kwargs):
                     errorHandler(r[1])
 
             # Merge
-            if options['merge'] and len(results) > 0:
+            if options['merge'] and results:
 
                 # Dict
                 if isinstance(results[0], dict):
@@ -149,13 +155,14 @@ def fireEvent(name, *args, **kwargs):
 
                     results = merged
 
-        modified_results = fireEvent('result.modify.%s' % name, results, single = True)
-        if modified_results:
+        if modified_results := fireEvent(
+            f'result.modify.{name}', results, single=True
+        ):
             log.debug('Return modified results for %s', name)
             results = modified_results
 
         if not options['is_after_event']:
-            fireEvent('%s.after' % name, is_after_event = True)
+            fireEvent(f'{name}.after', is_after_event = True)
 
         if options['on_complete']:
             options['on_complete']()

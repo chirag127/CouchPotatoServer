@@ -33,11 +33,9 @@ class Suggestion(Plugin):
         ignored = splitString(kwargs.get('ignored', ''))
         seen = splitString(kwargs.get('seen', ''))
 
-        cached_suggestion = self.getCache('suggestion_cached')
-        if cached_suggestion:
+        if cached_suggestion := self.getCache('suggestion_cached'):
             suggestions = cached_suggestion
         else:
-
             if not movies or len(movies) == 0:
                 active_movies = fireEvent('media.with_status', ['active', 'done'], types = 'movie', single = True)
                 movies = [getIdentifier(x) for x in active_movies]
@@ -56,7 +54,7 @@ class Suggestion(Plugin):
             # Cache poster
             posters = suggestion.get('images', {}).get('poster', [])
             poster = [x for x in posters if 'tmdb' in x]
-            posters = poster if len(poster) > 0 else posters
+            posters = poster or posters
 
             cached_poster = fireEvent('file.download', url = posters[0], single = True) if len(posters) > 0 else False
             files = {'image_poster': [cached_poster] } if cached_poster else {}
@@ -119,9 +117,7 @@ class Suggestion(Plugin):
         # Combine with previous suggestion_cache
         cached_suggestion = self.getCache('suggestion_cached') or []
         new_suggestions = []
-        ignored = [] if not ignored else ignored
-        seen = [] if not seen else seen
-
+        ignored = ignored or []
         if ignore_imdb:
             suggested_imdbs = []
             for cs in cached_suggestion:
@@ -133,12 +129,17 @@ class Suggestion(Plugin):
         if len(new_suggestions) - 1 < limit:
             active_movies = fireEvent('media.with_status', ['active', 'done'], single = True)
             movies = [getIdentifier(x) for x in active_movies]
+            seen = seen or []
+
             movies.extend(seen)
 
             ignored.extend([x.get('imdb') for x in cached_suggestion])
-            suggestions = fireEvent('movie.suggest', movies = movies, ignore = removeDuplicate(ignored), single = True)
-
-            if suggestions:
+            if suggestions := fireEvent(
+                'movie.suggest',
+                movies=movies,
+                ignore=removeDuplicate(ignored),
+                single=True,
+            ):
                 new_suggestions.extend(suggestions)
 
         self.setCache('suggestion_cached', new_suggestions, timeout = 3024000)

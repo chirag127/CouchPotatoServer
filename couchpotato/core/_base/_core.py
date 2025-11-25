@@ -145,7 +145,7 @@ class Core(Plugin):
             log.info('Already shutting down')
             return
 
-        log.info('Shutting down' if not restart else 'Restarting')
+        log.info('Restarting' if restart else 'Shutting down')
 
         self.shutdown_started = True
 
@@ -159,13 +159,13 @@ class Core(Plugin):
             still_running = fireEvent('plugin.running', merge = True)
             log.debug('Still running: %s', still_running)
 
-            if len(still_running) == 0:
+            if (
+                len(still_running) == 0
+                or len(still_running) != 0
+                and starttime < time.time() - 30
+            ):
                 break
-            elif starttime < time.time() - 30:  # Always force break after 30s wait
-                break
-
-            running = list(set(still_running) - set(self.ignore_restart))
-            if len(running) > 0:
+            if running := list(set(still_running) - set(self.ignore_restart)):
                 log.info('Waiting on plugins to finish: %s', running)
             else:
                 loop = False
@@ -181,9 +181,6 @@ class Core(Plugin):
                 loop.stop()
         except RuntimeError:
             pass
-        except:
-            log.error('Failed shutting down the server: %s', traceback.format_exc())
-
         fireEvent('app.after_shutdown', restart = restart)
 
     def launchBrowser(self):
@@ -202,7 +199,7 @@ class Core(Plugin):
 
     def createBaseUrl(self):
         host = Env.setting('host')
-        if host == '0.0.0.0' or host == '':
+        if host in ['0.0.0.0', '']:
             host = 'localhost'
         port = Env.setting('port')
         ssl = Env.setting('ssl_cert') and Env.setting('ssl_key')
@@ -210,7 +207,7 @@ class Core(Plugin):
         return '%s:%d%s' % (cleanHost(host, ssl = ssl).rstrip('/'), int(port), Env.get('web_base'))
 
     def createApiUrl(self):
-        return '%sapi/%s' % (self.createBaseUrl(), Env.setting('api_key'))
+        return f"{self.createBaseUrl()}api/{Env.setting('api_key')}"
 
     def version(self):
         ver = fireEvent('updater.info', single = True) or {'version': {}}
@@ -219,7 +216,7 @@ class Core(Plugin):
         elif 'Darwin' in platform.platform(): platf = 'osx'
         else: platf = 'linux'
 
-        return '%s - %s-%s - v2' % (platf, ver.get('version').get('type') or 'unknown', ver.get('version').get('hash') or 'unknown')
+        return f"{platf} - {ver.get('version').get('type') or 'unknown'}-{ver.get('version').get('hash') or 'unknown'} - v2"
 
     def versionView(self, **kwargs):
         return {

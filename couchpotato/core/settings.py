@@ -78,8 +78,7 @@ class Settings(object):
         return self.p
 
     def sections(self):
-        res = filter( self.isSectionReadable, self.p.sections())
-        return res
+        return filter( self.isSectionReadable, self.p.sections())
 
     def connectEvents(self):
         addEvent('settings.options', self.addOptions)
@@ -96,8 +95,7 @@ class Settings(object):
 
             # Set UI-meta for option (hidden/ro/rw)
             if option.get('ui-meta'):
-                value = option.get('ui-meta')
-                if value:
+                if value := option.get('ui-meta'):
                     value = value.lower()
                     if value in ['hidden', 'rw', 'ro']:
                         meta_option_name = option_name + self.optionMetaSuffix()
@@ -106,11 +104,12 @@ class Settings(object):
                         self.log.warning('Wrong value for option %s.%s : ui-meta can not be equal to "%s"', (section_name, option_name, value))
 
             # Migrate old settings from old location to the new location
-            if option.get('migrate_from'):
-                if self.p.has_option(option.get('migrate_from'), option_name):
-                    previous_value = self.p.get(option.get('migrate_from'), option_name)
-                    self.p.set(section_name, option_name, previous_value)
-                    self.p.remove_option(option.get('migrate_from'), option_name)
+            if option.get('migrate_from') and self.p.has_option(
+                option.get('migrate_from'), option_name
+            ):
+                previous_value = self.p.get(option.get('migrate_from'), option_name)
+                self.p.set(section_name, option_name, previous_value)
+                self.p.remove_option(option.get('migrate_from'), option_name)
 
             if option.get('type'):
                 self.setType(section_name, option_name, option.get('type'))
@@ -135,10 +134,10 @@ class Settings(object):
 
         tp = type
         try:
-            tp = self.getType(section, option) if not tp else tp
+            tp = tp or self.getType(section, option)
 
-            if hasattr(self, 'get%s' % tp.capitalize()):
-                return getattr(self, 'get%s' % tp.capitalize())(section, option)
+            if hasattr(self, f'get{tp.capitalize()}'):
+                return getattr(self, f'get{tp.capitalize()}')(section, option)
             else:
                 return self.getUnicode(section, option)
 
@@ -179,9 +178,7 @@ class Settings(object):
             return tryFloat(self.p.get(section, option))
 
     def getDirectories(self, section, option):
-        value = self.p.get(section, option)
-
-        if value:
+        if value := self.p.get(section, option):
             return map(str.strip, str.split(value, self.directories_delimiter))
         return []
 
@@ -260,15 +257,17 @@ class Settings(object):
     def getType(self, section, option):
         tp = None
         try: tp = self.types[section][option]
-        except: tp = 'unicode' if not tp else tp
+        except:
+            tp = tp or 'unicode'
         return tp
 
     def addOptions(self, section_name, options):
         # no additional actions (related to ro-rw options) are required here
-        if not self.options.get(section_name):
-            self.options[section_name] = options
-        else:
-            self.options[section_name] = mergeDicts(self.options[section_name], options)
+        self.options[section_name] = (
+            mergeDicts(self.options[section_name], options)
+            if self.options.get(section_name)
+            else options
+        )
 
     def getOptions(self):
         """Returns dict of UI-readable options
@@ -308,10 +307,10 @@ class Settings(object):
                                             group_copy_options.append(option)
                                             if not self.isOptionWritable(section_name, option_name):
                                                 option['readonly'] = True
-                            if len(group_copy_options)>0:
+                            if group_copy_options:
                                 group_copy['options'] = group_copy_options
                                 section_copy_groups.append(group_copy)
-                if len(section_copy_groups)>0:
+                if section_copy_groups:
                     section_copy['groups'] = section_copy_groups
                     res[section_key] = section_copy
 
@@ -350,21 +349,21 @@ class Settings(object):
             value = self.directories_delimiter.join(value)
 
         # See if a value handler is attached, use that as value
-        new_value = fireEvent('setting.save.%s.%s' % (section, option), value, single = True)
+        new_value = fireEvent(f'setting.save.{section}.{option}', value, single = True)
 
-        self.set(section, option, (new_value if new_value else value).encode('unicode_escape'))
+        self.set(section, option, (new_value or value).encode('unicode_escape'))
         self.save()
 
         # After save (for re-interval etc)
-        fireEvent('setting.save.%s.%s.after' % (section, option), single = True)
-        fireEvent('setting.save.%s.*.after' % section, single = True)
+        fireEvent(f'setting.save.{section}.{option}.after', single = True)
+        fireEvent(f'setting.save.{section}.*.after', single = True)
 
         return {
             'success': True
         }
 
     def isSectionReadable(self, section):
-        meta = 'section_hidden' + self.optionMetaSuffix()
+        meta = f'section_hidden{self.optionMetaSuffix()}'
         try:
             return not self.p.getboolean(section, meta)
         except: pass
@@ -376,7 +375,7 @@ class Settings(object):
         meta = option + self.optionMetaSuffix()
         if self.p.has_option(section, meta):
             meta_v = self.p.get(section, meta).lower()
-            return (meta_v == 'rw') or (meta_v == 'ro')
+            return meta_v in ['rw', 'ro']
 
         # by default - all is writable:
         return True
@@ -421,9 +420,6 @@ class Settings(object):
         except ValueError:
             propert = db.get('property', identifier)
             fireEvent('database.delete_corrupted', propert.get('_id'))
-        except:
-            self.log.debug('Property "%s" doesn\'t exist: %s', (identifier, traceback.format_exc(0)))
-
         return prop
 
     def setProperty(self, identifier, value = ''):

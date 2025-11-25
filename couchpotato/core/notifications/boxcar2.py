@@ -26,11 +26,14 @@ class Boxcar2(Notification):
 
             data = {
                 'user_credentials': self.conf('token'),
-                'notification[title]': toUnicode('%s - %s' % (self.default_title, message)),
+                'notification[title]': toUnicode(
+                    f'{self.default_title} - {message}'
+                ),
                 'notification[long_message]': toUnicode(long_message),
                 'notification[icon_url]': self.LOGO_URL,
                 'notification[source_name]': 'CouchPotato',
             }
+
 
             self.urlopen(self.url, data = data)
         except:
