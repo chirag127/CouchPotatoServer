@@ -1,18 +1,86 @@
-*.pyc
-/data/
-/_env/
-/_source/
-.project
-.pydevproject
-/node_modules/
-/.tmp/
-/.sass-cache/
+# --- Apex Technical Authority Standard Ignore (.gitignore) ---
+# Generated: December 2025
+# Project: FilmFetch-Automated-Movie-Indexer-Service
+
+# 1. Byte-compiled / Optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 2. C extensions
+*.so
+
+# 3. Distribution / Packaging
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 4. PyInstaller
+#  Usually these files are created by pyinstaller, if you are using pyinstaller
+#  and want to ignore them, uncomment the lines below
+# *.spec
+# *.pyzw
+# *.pyz
+# *.pyz.extracted/
+
+# 5. Virtual Environments
+.env
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+
+# 6. Test & Coverage Reports
 .coverage
-coverage.xml
-nosetests.xml
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+htmlcov/
+pytest-report.html
 
-# Visual Studio
+# 7. IDE & Editor Configuration
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
 
-/.vs
+# 8. Linting & Formatting Caches
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
+# 9. Operating System Files
 .DS_Store
+Thumbs.db
+
+# 10. Environment Variables & Secrets
+# IMPORTANT: Never commit secrets. Use environment variables or a secrets manager.
+*.env
+*.env.*
+!*.env.example
+secrets.yml
+
+# 11. Logs & Temporary Files
+*.log
+logs/
+*.log.*
+
+# 12. Local configuration files
+local_settings.py
