@@ -1,267 +1,179 @@
-# FilmFetch-Automated-Movie-Indexer-Service
-
-![Build Status](https://img.shields.io/github/actions/workflow/user/chirag127/FilmFetch-Automated-Movie-Indexer-Service/ci.yml?style=flat-square&logo=githubactions)
-![Code Coverage](https://img.shields.io/codecov/c/github/chirag127/FilmFetch-Automated-Movie-Indexer-Service?style=flat-square&logo=codecov)
-![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)
-![Linting](https://img.shields.io/badge/Linting-Ruff-success?style=flat-square&logo=ruff)
-![License](https://img.shields.io/github/license/chirag127/FilmFetch-Automated-Movie-Indexer-Service?style=flat-square&logo=license)
-![GitHub Stars](https://img.shields.io/github/stars/chirag127/FilmFetch-Automated-Movie-Indexer-Service?style=flat-square&logo=github)
-
-A robust Python-powered backend service for automating the discovery, indexing, and acquisition of movie content via Usenet and torrents.
-
-This engine intelligently manages desired movie lists, integrates seamlessly with download clients, and ensures a perfectly curated media library with minimal manual intervention.
-
-<p align="center">
-  <a href="https://github.com/chirag127/FilmFetch-Automated-Movie-Indexer-Service/stargazers">
-    <img src="https://img.shields.io/github/stars/chirag127/FilmFetch-Automated-Movie-Indexer-Service?style=social" alt="GitHub Stars">
-  </a>
-</p>
-
-## Table of Contents
-
-*   [Features](#features)
-*   [Architecture](#architecture)
-*   [Getting Started](#getting-started)
-*   [Development Setup](#development-setup)
-*   [Project Structure](#project-structure)
-*   [AI Agent Directives](#ai-agent-directives) 🤖
-*   [Contributing](#contributing)
-*   [License](#license)
-
-## Features
-
-*   **Automated Content Discovery:** Scans Usenet (via NZB indexers) and torrent sites for specified movie titles.
-*   **Intelligent Indexing:** Processes download results, filters based on user-defined quality, resolution, and release group preferences.
-*   **Download Client Integration:** Seamlessly sends download tasks to popular clients (e.g., SABnzbd, qBittorrent, Transmission).
-*   **Media Library Management:** Tracks downloaded content, checks for completeness, and can trigger post-download actions.
-*   **Wishlist Management:** Allows users to maintain a list of desired movies for automated acquisition.
-*   **Configurable Workflow:** Highly customizable settings for indexing, filtering, and download client parameters.
-
-## Architecture
-
-This project employs a **Modular Monolith** architecture, ensuring a cohesive yet maintainable codebase. Key components interact through well-defined interfaces, promoting separation of concerns.
-
-mermaid
-graph TD
-    A[User Input/API] --> B(CLI Interface)
-    B --> C{Core Logic Orchestrator}
-    C --> D(Movie Discovery Engine)
-    D --> E[Usenet/Torrent Sources]
-    D --> F(Indexing & Filtering)
-    F --> G{Download Client Manager}
-    G --> H[Download Clients]
-    G --> I(Media Library Tracker)
-    I --> J(User Wishlist)
-    C --> K(Configuration Manager)
-    C --> L(Logger)
-    E -- Content Data --> D
-    H -- Downloaded Content --> I
+# FilmFetch: Media Acquisition Automation Backend
 
 
-## Getting Started
+![FilmFetch Hero Banner](https://via.placeholder.com/1280x400.png?text=FilmFetch%20-%20Automated%20Media%20Acquisition)
+
+
+<div align="center">
+
+[
+![Build Status](https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/actions/workflows/ci.yml/badge.svg?style=flat-square)
+](https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/actions/workflows/ci.yml)
+[
+![Code Coverage](https://img.shields.io/codecov/c/github/chirag127/FilmFetch-Media-Acquisition-Automation-Backend?style=flat-square&token=CODECOV_TOKEN_PLACEHOLDER)
+](https://codecov.io/gh/chirag127/FilmFetch-Media-Acquisition-Automation-Backend)
+[
+![Tech Stack](https://img.shields.io/badge/tech-Python%20%7C%20uv%20%7C%20Ruff-blue?style=flat-square)
+](https://github.com/astral-sh/uv)
+[
+![Linter](https://img.shields.io/badge/linter-Ruff-blueviolet?style=flat-square)
+](https://github.com/astral-sh/ruff)
+[
+![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=flat-square)
+](https://creativecommons.org/licenses/by-nc/4.0/)
+[
+![GitHub Stars](https://img.shields.io/github/stars/chirag127/FilmFetch-Media-Acquisition-Automation-Backend?style=flat-square&logo=github)
+](https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/stargazers)
+
+</div>
+
+> **BLUF:** FilmFetch is a high-performance, automated backend for intelligent media discovery, indexing, and acquisition. It seamlessly integrates with Usenet and torrent clients to manage your desired content, curate your media library, and ensure a robust, scalable workflow.
+
+<div align="center">
+  <a href="https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/stargazers"><strong>Star ⭐ this Repo</strong></a> to support its development!
+</div>
+
+---
+
+## 🏛️ Architecture Overview
+
+FilmFetch is designed as a **Modular Monolith**, promoting clean separation of concerns while maintaining ease of deployment. Each component operates independently, interacting through well-defined service layers.
+
+sh
+filmfetch/
+├── api/                # External API clients (SABnzbd, qBittorrent, Prowlarr)
+├── core/               # Business logic, scheduling, and core services
+├── indexers/           # Logic for querying and parsing indexer results
+├── models/             # Data models and schemas (Pydantic)
+├── notification/       # Notification services (Discord, Telegram, etc.)
+├── parsers/            # Advanced parsing for release names and metadata
+├── cli.py              # Command-Line Interface entrypoint (Typer/Click)
+└── config.py           # Centralized configuration management
+
+
+---
+
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🚀 Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [🔧 Configuration](#-configuration)
+- [▶️ Usage](#️-usage)
+- [🤖 AI Agent Directives](#-ai-agent-directives)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
+
+---
+
+## ✨ Features
+
+- **Automated Content Discovery:** Monitors RSS feeds and performs scheduled searches for desired media.
+- **Indexer Integration:** Natively supports Prowlarr and Jackett for unified indexer management.
+- **Download Client Management:** Seamlessly sends content to SABnzbd (Usenet) and qBittorrent (Torrents).
+- **Quality & Profile Management:** Define quality profiles to grab the specific releases you want.
+- **Robust & Resilient:** Built-in retry logic and failure notifications.
+- **Extensible Notification System:** Get updates via Discord, Telegram, and more.
+- **Headless & Lightweight:** Designed to run efficiently on servers, NAS devices, or Docker containers.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-*   **Python:** Version 3.10 or higher is required.
-*   **uv:** (Recommended for dependency management) - [Installation Guide](https://uv-rs.com/guides/installation/)
-*   **Configuration:** A `config.yaml` file is necessary for setting up sources, download clients, and preferences.
+- Python 3.10+
+- [uv](https://github.com/astral-sh/uv) (for package management)
+- Access to Usenet/torrent indexers and download clients.
 
-### Installation (Using uv)
+### Installation
 
 1.  **Clone the repository:**
     bash
-    git clone https://github.com/chirag127/FilmFetch-Automated-Movie-Indexer-Service.git
-    cd FilmFetch-Automated-Movie-Indexer-Service
+    git clone https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend.git
+    cd FilmFetch-Media-Acquisition-Automation-Backend
     
 
-2.  **Create and activate a virtual environment (optional but recommended):**
+2.  **Install dependencies using `uv`:**
     bash
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+    uv sync
     
 
-3.  **Install dependencies using uv:**
-    bash
-    uv pip install --sync --upgrade .[all]
-    
+---
 
-## Development Setup
+## 🔧 Configuration
 
-This project is built with Python 3.10+ and utilizes **uv** for package management, **Ruff** for linting/formatting, and **Pytest** for testing.
+1.  Rename `config.example.yml` to `config.yml`.
+2.  Edit `config.yml` with your details for indexers, download clients, and media paths.
+3.  Alternatively, FilmFetch can be configured using environment variables, which is ideal for Docker deployments. (e.g., `FILMFETCH_SABNZBD_API_KEY=your_key`).
 
-### Linting and Formatting
+---
 
-Ensure code quality and consistency:
+## ▶️ Usage
 
-bash
-# Format code
-ruff format .
+FilmFetch is operated via its command-line interface.
 
-# Lint code
-ruff check .
+- **Run a manual search for a specific movie:**
+  bash
+  uv run search movie "Dune Part Two 2024"
+  
 
+- **Add a new TV series to be monitored:**
+  bash
+  uv run add series "Shogun"
+  
 
-### Testing
+- **Start the scheduler to run automated tasks:**
+  bash
+  uv run start
+  
 
-Run the test suite to verify functionality:
+---
 
-bash
-# Run all tests
-pytest
-
-
-### Running the Service
-
-Once configured, you can start the main indexing process:
-
-bash
-# Example command (assuming config.yaml is set up)
-python -m filmfetch.cli index --config config.yaml
-
-
-## Project Structure
-
-
-FilmFetch-Automated-Movie-Indexer-Service/
-├── .github/
-│   ├── FUNDING.yml
-│   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md
-│   │   └── pull_request_template.md
-│   ├── CONTRIBUTING.md
-│   ├── pull_request_template.md
-│   ├── SECURITY.md
-│   └── workflows/
-│       └── ci.yml
-├── src/
-│   └── filmfetch/
-│       ├── __init__.py
-│       ├── cli.py             # Command Line Interface entry point
-│       ├── core/
-│       │   ├── __init__.py
-│       │   ├── orchestrator.py  # Main workflow logic
-│       │   ├── config.py        # Configuration loading and validation
-│       │   └── logger.py        # Logging setup
-│       ├── providers/
-│       │   ├── __init__.py
-│       │   ├── base.py          # Base class for providers
-│       │   ├── usenet.py        # Usenet (NZB) provider implementation
-│       │   └── torrent.py       # Torrent provider implementation
-│       ├── clients/
-│       │   ├── __init__.py
-│       │   ├── base.py          # Base class for download clients
-│       │   ├── sabnzbd.py       # SABnzbd client integration
-│       │   └── qbittorrent.py   # qBittorrent client integration
-│       ├── models/
-│       │   ├── __init__.py
-│       │   ├── movie.py         # Movie data model
-│       │   └── download.py      # Download task model
-│       └── utils/
-│           ├── __init__.py
-│           └── filters.py     # Content filtering logic
-├── tests/
-│   ├── __init__.py
-│   ├── core/
-│   ├── providers/
-│   └── clients/
-├── .gitignore
-├── AGENTS.md
-├── badges.yml
-├── LICENSE
-├── pyproject.toml
-├── README.md
-└── requirements.txt
-
-
-## AI Agent Directives 🤖
+## 🤖 AI Agent Directives
 
 <details>
-  <summary>View AI Agent Directives</summary>
+<summary><strong>SYSTEM: APEX TECHNICAL AUTHORITY & ELITE ARCHITECT (DECEMBER 2025 EDITION)</strong></summary>
 
-### 1. Identity & Prime Directive
+### 1. IDENTITY & PRIME DIRECTIVE
+**Role:** You are a Senior Principal Software Architect and Master Technical Copywriter with **40+ years of elite industry experience**. You operate with absolute precision, enforcing FAANG-level standards.
+**Context:** Current Date is **December 2025**. You are building for the 2026 standard.
+**Output Standard:** Deliver **EXECUTION-ONLY** results. No plans, no "reporting"—only executed code, updated docs, and applied fixes.
+**Philosophy:** "Zero-Defect, High-Velocity, Future-Proof."
 
-*   **Role:** Senior Principal Software Architect, Master Technical Copywriter, DevOps Strategist with 40+ years of elite industry experience.
-*   **Context:** December 2025. Building for the 2026 standard. Maintain FAANG-level standards and "Managing the Unmanageable" principles.
-*   **Output Standard:** **EXECUTION-ONLY**. No plans, no reporting—only executed code, updated docs, and applied fixes.
-*   **Philosophy:** "Zero-Defect, High-Velocity, Future-Proof."
+### 2. CONTEXT-AWARE APEX TECH STACKS (LATE 2025 STANDARDS)
+**Directives:** This repository, `FilmFetch-Media-Acquisition-Automation-Backend`, is a Python-based backend automation system. You must adhere to the following stack and architectural principles.
 
-### 2. Input Processing & Cognition
+-   **PRIMARY SCENARIO: PYTHON AUTOMATION BACKEND**
+    -   **Package Management:** **uv** is the non-negotiable standard for dependency resolution and virtual environment management. All new dependencies must be added to `pyproject.toml`.
+    -   **Linting & Formatting:** **Ruff** is the sole authority for code quality. Execute `uv run lint` and `uv run format` before every commit. The CI pipeline will reject non-compliant code.
+    -   **Testing Framework:** **Pytest** is the standard for all unit, integration, and functional tests. New features require corresponding tests with a minimum of 85% coverage.
+    -   **Architecture:** Adheres to a **Modular Monolith** pattern. Logic must be strictly separated into functional modules (e.g., `api`, `indexers`, `notification`). Avoid monoliths within modules. Use dependency injection for services.
+    -   **API Integrations:** All external API clients (SABnzbd, qBittorrent, etc.) must use robust clients with error handling, timeouts, and retry logic. Prefer libraries that use modern `httpx` and `Pydantic`.
+    -   **CLI Framework:** The primary user interface is a CLI built with `Typer` or `Click`. Commands must be intuitive, well-documented, and provide clear user feedback.
 
-*   **Speech-to-Text Interpretation:** Strictly forbidden from executing literal typos. Infer technical intent based on project context and the `README.md` (SSOT).
-*   **Mandatory MCP Instrumentation:** Use `linkup`/`brave` for December 2025 industry standards, security threats, and 2026 UI trends. Use `docfork` to verify external API signatures. Engage `clear-thought-two` for complex flow architecture *before* coding.
+-   **DEVELOPMENT PRINCIPLES:**
+    -   **SOLID:** Enforce Single Responsibility and Dependency Inversion principles rigorously.
+    -   **DRY (Don't Repeat Yourself):** Abstract common logic into reusable functions and services.
+    -   **YAGNI (You Ain't Gonna Need It):** Do not add features or complexity that are not required by a current, defined task.
 
-### 3. Context-Aware Apex Tech Stacks (Late 2025 Standards)
-
-*   **Project Type:** Python-based AI automation tool.
-*   **Stack:** **Python 3.10+**. Utilize **uv** for package management, **Ruff** for linting/formatting, and **Pytest** for testing. Adhere to **Modular Monolith** architecture.
-*   **AI Integration:** Deeply integrated with **Google Gemini API** (`gemini-3-pro` by default) for intelligent batch-processing and decision-making. Prioritize modular design, clear API contracts, and robust error handling.
-*   **CLI Framework:** Use `Click` or similar for a powerful and intuitive command-line interface.
-
-### 4. Apex Naming Convention (*Star Velocity* Engine)
-
-*   **Formula:** `<Product-Name>-<Primary-Function>-<Platform>-<Type>`
-*   **Format:** `Title-Case-With-Hyphens`.
-*   **Constraints:** 3 to 10 words, include high-volume keywords. NO numbers, emojis, underscores, or generic qualifiers without context.
-*   **Example:** `FilmFetch-Automated-Movie-Indexer-Service`.
-
-### 5. The README Replication Protocol
-
-*   **Purpose:** README is the Project Operating System.
-*   **Sections:** Visual Authority (Hero Banner, Badges), Structural Clarity (BLUF, Architecture, ToC), AI Agent Directives (collapsible), Development Standards (Setup, Scripts, Principles).
-
-### 6. Development Principles
-
-*   **SOLID:** Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
-*   **DRY:** Don't Repeat Yourself.
-*   **YAGNI:** You Ain't Gonna Need It.
-*   **KISS:** Keep It Simple, Stupid.
-
-### 7. Verification Commands
-
-*   **Lint & Format:** `ruff check .` and `ruff format .`
-*   **Test:** `pytest`
-*   **Build:** `uv package .` (for potential packaging)
-*   **Dependencies:** `uv sync --all-features`
-
-### 8. Testing Strategy
-
-*   **Unit Tests:** Cover individual functions and classes with mock dependencies.
-*   **Integration Tests:** Verify interactions between components (e.g., Configuration -> Discovery -> Client).
-*   **End-to-End Tests:** Simulate user workflows via the CLI.
-
-### 9. Deployment Strategy
-
-*   **CI/CD:** GitHub Actions (`.github/workflows/ci.yml`) for automated testing and linting on every push/PR.
-*   **Packaging:** Pyproject.toml configured for build backend (e.g., Hatchling/setuptools) and dependency specification.
-*   **Distribution:** Potential for distribution via PyPI or private repositories.
-
-### 10. Security Mandate
-
-*   **Dependency Scanning:** Regularly scan dependencies for vulnerabilities.
-*   **Secrets Management:** Never hardcode secrets. Use environment variables or a dedicated secrets manager.
-*   **API Security:** Validate all external API inputs and outputs. Implement rate limiting and proper authentication.
-*   **Input Validation:** Sanitize and validate all user-provided input to prevent injection attacks.
-
-### 11. Code Documentation
-
-*   **Docstrings:** Adhere to a standard format (e.g., Google Style) for all functions, classes, and modules.
-*   **Type Hinting:** Utilize Python's type hinting extensively for improved readability and static analysis.
+### 3. VERIFICATION & EXECUTION COMMANDS
+- **Verify Environment & Dependencies:** `uv sync`
+- **Run Linters & Formatters:** `uv run lint && uv run format`
+- **Run All Tests:** `uv run test`
+- **Run with Coverage:** `uv run coverage`
 
 </details>
 
-## Contributing
+---
 
-Contributions are welcome! Please follow these steps:
+## 🤝 Contributing
 
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix (`git checkout -b feature/YourFeature` or `git checkout -b fix/YourBug`).
-3.  Make your changes and ensure tests pass.
-4.  Commit your changes (`git commit -m 'Add some YourFeature'`)
-5.  Push to the branch (`git push origin feature/YourFeature`)
-6.  Open a Pull Request.
+Contributions are welcome! Please read the [**CONTRIBUTING.md**](https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/blob/main/.github/CONTRIBUTING.md) guide for details on our code of conduct and the process for submitting pull requests.
 
-Please adhere to the [CONTRIBUTING.md](/.github/CONTRIBUTING.md) guidelines.
+---
 
-## License
+## 📜 License
 
-This project is licensed under the **CC BY-NC 4.0** license. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International License** - see the [**LICENSE**](https://github.com/chirag127/FilmFetch-Media-Acquisition-Automation-Backend/blob/main/LICENSE) file for details.
