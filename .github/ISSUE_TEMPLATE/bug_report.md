@@ -1,54 +1,52 @@
 ---
-name: "Bug Report"
-description: "Report a reproducible bug or unexpected behavior in FilmFetch."
-title: "BUG: <A brief, descriptive title of the bug>"
-labels: ["bug", "triage"]
-assignees: 'chirag127'
+name: Bug Report
+about: Report a bug you found in the project
+title: "Bug: [Short Description]"
+labels: "bug"
+assignees: "chirag127"
 
----
+--- 
 
-### **Preliminary Checks**
+## Bug Description
 
-*   [ ] I have searched the existing [issues](https://github.com/chirag127/FilmFetch-Automated-Movie-Indexer-Service/issues) and confirmed this is not a duplicate.
-*   [ ] I am running the latest version of FilmFetch.
-*   [ ] I have reviewed the [documentation](https://github.com/chirag127/FilmFetch-Automated-Movie-Indexer-Service#readme) for any relevant configuration details.
+A clear and concise description of what the bug is. Please include any specific details about the unexpected behavior.
 
----
+**To Reproduce**
 
-### **1. Describe the Bug**
+Steps to reproduce the behavior:
 
-A clear and concise description of what the bug is. What happened, and what did you expect to happen?
+1.  Go to '...' (e.g., 'Run `python main.py --scan`')
+2.  Click on '....' (e.g., 'Observe the output for media items')
+3.  Scroll down to '....'
+4.  See error (e.g., 'The script exits with a `FileNotFoundError` when processing `.torrent` files.')
 
-### **2. Steps to Reproduce**
-
-Please provide a clear, step-by-step set of instructions to reproduce this behavior. Ambiguous reports will be closed.
-
-1.  Go to '...'
-2.  Run command '....'
-3.  Modify configuration file `config.yml` with '....'
-4.  See error in log file `...`
-
-### **3. Expected Behavior**
+**Expected Behavior**
 
 A clear and concise description of what you expected to happen.
 
-### **4. System Environment**
+**Actual Behavior**
 
-Please complete the following information. Incomplete reports may be closed.
+If applicable, add screenshots or screen recordings to help explain your problem.
 
-*   **OS:** [e.g., Docker on Ubuntu 22.04, Windows 11, macOS Sonoma]
-*   **Python Version:** [e.g., `3.11.4`]
-*   **FilmFetch Version:** [e.g., `v1.2.0` or Git commit SHA]
-*   **Download Client(s) & Version:** [e.g., SABnzbd 4.2.0, qBittorrent 4.6.2]
+**Environment (Please provide the following)**
 
-### **5. Relevant Log Output**
+*   **Project Version:** (e.g., `1.2.0` - ideally from `pyproject.toml` or similar)
+*   **Python Version:** (e.g., `Python 3.10.12`)
+*   **Operating System:** (e.g., `Ubuntu 22.04`, `Windows 11`, `macOS Ventura 13.5`)
+*   **Dependencies:** (List any specific dependency versions that might be relevant, e.g., `Transmission RPC 1.3.0`)
 
-Please provide any relevant log snippets. For longer logs, please use a service like [Pastebin](https://pastebin.com) and link it here. Ensure you **remove any sensitive information** (API keys, passwords, personal data) before posting.
+**Additional Context**
 
-log
-<-- PASTE YOUR RELEVANT LOG OUTPUT HERE -->
+Add any other context about the problem here. For example, specific configurations, unusual media names, or network conditions.
+
+**Traceback / Logs**
+
+If the bug resulted in an error, please provide the relevant traceback or log output. You can paste it directly or use a service like [Gist](https://gist.github.com/) and link it here.
+
+bash
+# Paste traceback here
 
 
-### **6. Additional Context**
+--- 
 
-Add any other context about the problem here. For example, did this start happening after a recent update to FilmFetch or one of your download clients? Is it specific to a certain indexer or movie?
+*This template adheres to the Apex Technical Authority standards, ensuring detailed and actionable bug reports for high-velocity development on the `FilmFetch-Media-Acquisition-Automation-Backend` repository.*
